@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <link rel="icon" href="data:,">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#05060f" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>霓虹迷宮：核心戰爭 — 3D 第一人稱射擊</title>
+<meta name="description" content="完整的 3D 第一人稱科幻射擊遊戲：6 個戰役關卡、首領戰、無盡生存、武器商店與升級系統。支援手機與電腦。" />
+  <script type="module" crossorigin src="./assets/index-BcRWvIVU.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BXNyd0Hz.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="c"></canvas>
+  <div id="touch"></div>
+
+  <!-- ===================== HUD ===================== -->
+  <div id="hud" class="hidden">
+    <div id="flashOv"></div>
+    <div id="lowhp"></div>
+    <div id="scope"><div class="sc-h"></div><div class="sc-v"></div><div class="sc-ring"></div></div>
+    <div id="crosshair"><i class="l"></i><i class="r"></i><i class="t"></i><i class="b"></i><i class="dot"></i><div id="hitm"></div></div>
+    <div id="dmgInd"></div>
+    <div id="wayp"><div class="dia"></div><span id="waypD"></span></div>
+
+    <div id="objPanel"><div id="objTitle"></div><div id="objText"></div><div id="objBar"><i id="objFill"></i></div></div>
+    <div id="creditBox">◈ 0</div>
+    <div id="radarWrap"><canvas id="radar" width="260" height="260"></canvas><div id="killfeed"></div></div>
+    <div id="bossBar"><div id="bossName"></div><div class="bb"><i id="bossFill"></i><i id="bossShield"></i></div></div>
+
+    <div id="bars">
+      <div class="bar hp"><span class="ic">❤</span><div class="tr"><i id="hpFill"></i></div><b id="hpTxt">100</b></div>
+      <div class="bar ar"><span class="ic">🛡</span><div class="tr"><i id="arFill"></i></div><b id="arTxt">0</b></div>
+    </div>
+    <div id="ammoBox"><div id="swapHint">點擊換槍 ⟳</div><div id="wName">M9 手槍</div><div class="am"><b id="ammoMag">12</b><span id="ammoRes">/ 72</span></div><div id="reloadBar"><i></i></div></div>
+
+    <div id="toasts"></div>
+    <div id="banner"><div id="bannerT"></div><div id="bannerS"></div></div>
+    <div id="progRing"><div id="progTxt"></div><div class="pr"><i id="progFill"></i></div></div>
+    <div id="achToast"></div>
+    <div id="fpsTxt"></div>
+
+    <!-- touch controls -->
+    <div id="joyBase"><div id="joyKnob"></div></div>
+    <div id="joyHint"></div>
+    <div id="wslots"></div>
+    <button id="bFire" class="tb big"><span>射擊</span></button>
+    <button id="bAds" class="tb"><span>瞄準</span></button>
+    <button id="bJump" class="tb"><span>跳</span></button>
+    <button id="bReload" class="tb sm"><span>換彈</span></button>
+    <button id="bDash" class="tb sm"><div class="cdfill" id="dashFill"></div><span>衝刺<small>長按蹲</small></span></button>
+    <button id="bPause" aria-label="暫停">❚❚</button>
+  </div>
+
+  <div id="sub"><div class="sb-top"><b id="subName"></b><small id="subCount"></small></div><div id="subText"></div><div class="sb-act"><button class="btn sm ghost" data-act="cut-next">繼續 ▶</button><button class="btn sm ghost" data-act="cut-skip">跳過 ⏭</button></div></div>
+
+  <!-- ===================== SCREENS ===================== -->
+  <div id="sLoading" class="screen show">
+    <div class="ld-inner">
+      <div class="logo">NEON <em>MAZE</em></div>
+      <div class="logo-sub">CORE WAR</div>
+      <div id="ldBar"><i id="ldFill"></i></div>
+      <div id="ldTxt">載入中…</div>
+      <div id="ldTip"></div>
+    </div>
+  </div>
+
+  <div id="sMain" class="screen">
+    <div class="vig"></div>
+    <div class="menu-wrap">
+      <div class="title"><div class="t1">霓虹迷宮</div><div class="t2">核心戰爭<span class="blink">_</span></div><div class="t3">NEON MAZE · CORE WAR</div></div>
+      <div class="menu-list">
+        <button class="btn primary big" data-act="continue" id="btnContinue">▶ 開始戰役</button>
+        <div class="diffbar" id="diffBar"><span>難度</span><button class="btn sm" data-diff="0">簡單</button><button class="btn sm" data-diff="1">普通</button><button class="btn sm" data-diff="2">困難</button></div>
+        <button class="btn" data-act="levels">關卡選擇</button>
+        <button class="btn" data-act="survival">無盡生存</button>
+        <button class="btn" data-act="shop">武器商店</button>
+        <div class="row2"><button class="btn" data-act="ach">成就</button><button class="btn" data-act="lb">排行榜</button></div>
+        <div class="row2"><button class="btn" data-act="settings">設定</button><button class="btn" data-act="credits">製作名單</button></div>
+      </div>
+      <div class="menu-foot"><span id="mainCredits">◈ 0</span><span id="mainProg"></span></div>
+    </div>
+  </div>
+
+  <div id="sLevels" class="screen">
+    <div class="panel wide">
+      <div class="ph"><button class="btn sm ghost" data-act="back">‹ 返回</button><h2>戰役關卡</h2><span class="cr" data-cr>◈ 0</span></div>
+      <div id="levelGrid"></div>
+    </div>
+  </div>
+
+  <div id="sShop" class="screen">
+    <div class="panel wide">
+      <div class="ph"><button class="btn sm ghost" data-act="back">‹ 返回</button><h2>軍械庫</h2><span class="cr" data-cr>◈ 0</span></div>
+      <div class="tabs"><button class="tab on" data-tab="w">武器</button><button class="tab" data-tab="u">升級</button></div>
+      <div id="shopBody"></div>
+    </div>
+  </div>
+
+  <div id="sSettings" class="screen">
+    <div class="panel">
+      <div class="ph"><button class="btn sm ghost" data-act="back">‹ 返回</button><h2>設定</h2><span></span></div>
+      <div id="setBody"></div>
+    </div>
+  </div>
+
+  <div id="sAch" class="screen">
+    <div class="panel wide">
+      <div class="ph"><button class="btn sm ghost" data-act="back">‹ 返回</button><h2>成就</h2><span class="cr" id="achCount"></span></div>
+      <div id="achBody"></div>
+    </div>
+  </div>
+
+  <div id="sLb" class="screen">
+    <div class="panel">
+      <div class="ph"><button class="btn sm ghost" data-act="back">‹ 返回</button><h2>無盡生存排行榜</h2><span></span></div>
+      <div id="lbBody"></div>
+    </div>
+  </div>
+
+  <div id="sCredits" class="screen">
+    <div class="panel">
+      <div class="ph"><button class="btn sm ghost" data-act="back">‹ 返回</button><h2>製作名單與授權</h2><span></span></div>
+      <div id="credBody"></div>
+    </div>
+  </div>
+
+  <div id="sPause" class="screen ov">
+    <div class="panel narrow">
+      <h2>已暫停</h2>
+      <div class="stack">
+        <button class="btn primary" data-act="resume">繼續遊戲</button>
+        <button class="btn" data-act="pause-settings">設定</button>
+        <button class="btn" data-act="restart">重新開始</button>
+        <button class="btn" data-act="skip" id="btnSkip" style="display:none">⚑ 跳過關卡（除錯）</button>
+        <button class="btn danger" data-act="quit">返回主選單</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sDead" class="screen ov">
+    <div class="panel narrow dead">
+      <h2>任務失敗</h2>
+      <p id="deadTxt">你倒下了……</p>
+      <div class="stack">
+        <button class="btn primary" data-act="respawn">從檢查點復活</button>
+        <button class="btn" data-act="restart">重新開始</button>
+        <button class="btn danger" data-act="quit">返回主選單</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sResult" class="screen">
+    <div class="panel result">
+      <h2 id="resTitle">任務完成</h2>
+      <div id="resName"></div>
+      <div id="resStars"></div>
+      <div id="resGrid"></div>
+      <div id="resReward"></div>
+      <div class="stack row" id="resBtns"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
